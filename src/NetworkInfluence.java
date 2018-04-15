@@ -82,10 +82,44 @@ public class NetworkInfluence
 
 	public ArrayList<String> shortestPath(String u, String v)
 	{
-		// implementation
+		/*
+		 * 1. Input: Directed Graph G = (V, E), and root <in> V . 2. Initialize
+		 * a Queue Q and a list visited. 3. Place root in Q and visited. 4.
+		 * while Q is not empty Do (a) Let v be the first element of Q. (b) For
+		 * every edge <v, u> <in> E DO If u <in> visited add u to the end of Q,
+		 * and add u to visited. If you output the vertices in visited, that
+		 * will be BFS traversal of the input graph
+		 */
 
-		// replace this:
-		return null;
+		ArrayList<String> arr = new ArrayList<String>();
+		Queue<Vertex> Q = new LinkedList<Vertex>();
+		LinkedList<Vertex> visited = new LinkedList<Vertex>();
+
+		Vertex root;
+		for (Vertex ver : graph) {
+			if (ver.data.equals(u)) {
+				root = ver;
+				Q.add(root);
+				visited.add(root);
+				break;
+			}
+		}
+
+		while (!Q.isEmpty()) {
+			Vertex temp = Q.poll();
+			for (Vertex edge : temp.to) {
+				if (!visited.contains(edge)) {
+					Q.add(edge);
+					visited.add(edge);
+				}
+			}
+		}
+
+		for (Vertex point : visited) {
+			arr.add(point.data);
+		}
+
+		return arr;
 	}
 
 	public int distance(String u, String v)
