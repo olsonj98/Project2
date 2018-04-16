@@ -124,18 +124,18 @@ public class NetworkInfluence
 
 	public int distance(String u, String v)
 	{
-		// implementation:
-
-		// replace this:
-		return -1;
+		ArrayList<String> path = shortestPath(u,v);
+		return path.size();
 	}
 
 	public int distance(ArrayList<String> s, String v)
 	{
-		// implementation
-
-		// replace this:
-		return -1;
+		int shortest = Integer.MAX_VALUE;
+		for(String str : s){
+			int result = distance(str, v);
+			if(result < shortest && result != 0) shortest = result;
+		}
+		return shortest;
 	}
 
 	public float influence(String u)
