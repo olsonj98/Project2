@@ -18,9 +18,12 @@ public class Tests {
 	
 	private static void testNetworkInfluence(){
 		NetworkInfluence graph = new NetworkInfluence("wikiCC.txt");
-		String u = "/wiki/Complexity_theory";
-		String v = "/wiki/System";
-		String inf = "/wiki/Complexity";
+//		String u = "/wiki/Complexity_theory";
+//		String v = "/wiki/System";
+//		String inf = "/wiki/Complexity";
+		String u = "Ames";
+		String v = "Chicago";
+		String inf = "Omaha";
 		System.out.println("Distance between  " + u + " and " + v + ": " + graph.distance(u, v));
 		System.out.println("Influence of " + inf + ": " + graph.influence(inf));
 	}
