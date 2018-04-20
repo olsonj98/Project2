@@ -50,7 +50,9 @@ public class WikiCrawler {
 
 		while (!Q.isEmpty() && graph.vertexes.size() <= numPages) {
 			Vertex currentPage = Q.poll();
+			if(sleepCount % 25 == 0) Thread.sleep(3000);
 			urls = urlList(currentPage.data);
+			sleepCount++;
 			if (urls.size() != 0) {
 				graph.vertexes.add(currentPage);
 				for (String link : urls) {
