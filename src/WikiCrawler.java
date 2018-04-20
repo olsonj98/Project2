@@ -8,7 +8,7 @@
 //  (i.e., you may only include libraries of the form java.*)
 
 /**
- * @author Hugh Potter
+ * @author Jeff, Kevin, Tyler
  */
 
 import java.io.BufferedReader;
@@ -26,7 +26,8 @@ public class WikiCrawler {
 	String fileWriteName, seed;
 	int numPages;
 	ArrayList<String> topic;
-	ArrayList<Vertex> verticies;
+	Graph graph;
+	int sleepCount = 0;
 
 	public WikiCrawler(String seedUrl, int max, ArrayList<String> topics,
 			String fileName) {
@@ -34,72 +35,52 @@ public class WikiCrawler {
 		numPages = max;
 		fileWriteName = fileName;
 		topic = topics;
-		verticies = new ArrayList<Vertex>();
+		graph = new Graph();
 	}
 
-	public void crawl() {
-		try {
-			boolean result = checkSeed();
-			if (result) {
-				Vertex currentPage = new Vertex();
-				ArrayList<String> results;
+	public void crawl() throws Exception{
+		Queue<Vertex> Q = new LinkedList<Vertex>();
+		ArrayList<Vertex> visited = new ArrayList<Vertex>();
+		ArrayList<String> urls = new ArrayList<String>();
+		String page;
 
-				Vertex s = new Vertex();
-				s.data = seed;
+		Vertex root = new Vertex(seed);
+		Q.add(root);
+		visited.add(root);
 
-				Queue<Vertex> Q = new LinkedList<Vertex>();
-				Q.add(s);
-
-				LinkedList<String> visited = new LinkedList<String>();
-				visited.add(s.data);
-
-				while (Q.peek() != null && visited.size() < numPages)// limits
-																		// the
-																		// pages
-																		// from
-																		// keeping
-																		// on
-																		// searching
-				{
-					currentPage = Q.poll();
-					boolean check = checkPage(currentPage);
-					if (check) {
-						URL url = new URL(BASE_URL + currentPage.data);
-						InputStream is = url.openStream();
-						BufferedReader br = new BufferedReader(
-								new InputStreamReader(is));
-
-						String temp = builder(br);
-						results = extractLinks(temp);
-
-						for (String r : results) {
-							if (!visited.contains(r)) {// make sure it actually
-														// can go through the
-														// new vertex in queue
-								Vertex v = new Vertex();
-								v.data = r;
-								Q.add(v);
-								visited.add(v.data);
-								currentPage.to.add(v);
-								verticies.add(v);
-							}
-						}
-
+		while (!Q.isEmpty() && graph.vertexes.size() <= numPages) {
+			Vertex currentPage = Q.poll();
+			if (checkPage(currentPage)) {
+				graph.vertexes.add(currentPage);
+				page = builder(currentPage.data);
+				urls = extractLinks(page);
+				for (String link : urls) {
+					Vertex u = new Vertex(link, currentPage);
+					if (!visited.contains(u)) {
+						visited.add(u);
+						Q.add(u);
 					}
 				}
-				// write the results // TODO //right now its using visited, when
-				// visited should be every node, not just the ones that worked
-				if (!fileWriteName.contains(".txt"))
-					fileWriteName += ".txt";
-				PrintWriter writer = new PrintWriter(fileWriteName, "UTF-8");
-				for (String vis : visited) {
-					// System.out.println(vis);
-					writer.println(vis);
-				}
-				writer.close();
 			}
+		}
+		
+		for(Vertex v : graph.vertexes){
+			if(v.parent != null){
+				graph.edges.add(new Edge(v.parent, v));
+			}
+		}
+
+		if (!fileWriteName.contains(".txt")) {
+			fileWriteName += ".txt";
+		}
+		try {
+			PrintWriter writer = new PrintWriter(fileWriteName, "UTF-8");
+			for (Edge e : graph.edges) {
+				writer.println(e.from.data + " " + e.to.data);
+			}
+			writer.close();
 		} catch (Exception e) {
-			System.out.println("it done broke");
+			System.out.println("File writing has failed.");
 		}
 	}
 
@@ -135,7 +116,10 @@ public class WikiCrawler {
 		return results;
 	}
 
-	private String builder(BufferedReader br) throws Exception {
+	private String builder(String link) throws Exception {
+		URL url = new URL(BASE_URL + link);
+		InputStream is = url.openStream();
+		BufferedReader br = new BufferedReader(new InputStreamReader(is));
 		String line;
 		StringBuilder result = new StringBuilder();
 		try {
