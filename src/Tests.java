@@ -21,11 +21,8 @@ public class Tests {
 		 topics.add("Cyclones");
 
 		WikiCrawler w = new WikiCrawler(seed, numResults, topics, "WikiISU2.txt");
-		try {
-			w.crawl();
-		} catch (Exception e) {
-			int temp = 0;
-		}
+		w.crawl();
+		
 		System.out.println("DONE.....................");
 		System.out.println("Finished in: " + (System.currentTimeMillis() - startTime) + "ms");
 	}
