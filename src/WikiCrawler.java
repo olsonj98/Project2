@@ -39,7 +39,7 @@ public class WikiCrawler {
 		graph = new Graph();
 	}
 
-	public void crawl() throws Exception {
+	public void crawl() {
 		Queue<Vertex> Q = new LinkedList<Vertex>();
 		ArrayList<Vertex> visited = new ArrayList<Vertex>();
 		ArrayList<String> urls = new ArrayList<String>();
@@ -50,7 +50,7 @@ public class WikiCrawler {
 
 		while (!Q.isEmpty() && graph.vertexes.size() <= numPages) {
 			Vertex currentPage = Q.poll();
-			if(sleepCount % 25 == 0) Thread.sleep(3000);
+			if(sleepCount % 25 == 0) { try {Thread.sleep(3000);} catch(Exception e) { System.out.println("Sleep function failed.");}}
 			urls = urlList(currentPage.data);
 			sleepCount++;
 			if (urls.size() != 0) {
