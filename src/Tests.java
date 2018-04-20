@@ -9,11 +9,22 @@ public class Tests {
 	
 	private static void testWikiCrawler(){
 		ArrayList<String> topics = new ArrayList<String>();
+		int numResults = 10;
+		String seed = "/wiki/Size";
 		topics.add("length");
 		topics.add("height");
 		topics.add("width");
-		WikiCrawler w = new WikiCrawler("/wiki/Size", 10, topics, "WikiISU.txt");
-		w.crawl();
+
+		// String seed = "/wiki/Iowa_State_University";
+		// topics.add("Iowa");
+		// topics.add("Cyclones");
+
+		WikiCrawler w = new WikiCrawler(seed, numResults, topics, "WikiISU.txt");
+		try {
+			w.crawl();
+		} catch (Exception e) {
+			int temp = 0;
+		}
 	}
 	
 	private static void testNetworkInfluence(){
