@@ -12,6 +12,7 @@
  */
 
 import java.io.BufferedReader;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -38,11 +39,10 @@ public class WikiCrawler {
 		graph = new Graph();
 	}
 
-	public void crawl() throws Exception{
+	public void crawl() throws Exception {
 		Queue<Vertex> Q = new LinkedList<Vertex>();
 		ArrayList<Vertex> visited = new ArrayList<Vertex>();
 		ArrayList<String> urls = new ArrayList<String>();
-		String page;
 
 		Vertex root = new Vertex(seed);
 		Q.add(root);
@@ -50,10 +50,9 @@ public class WikiCrawler {
 
 		while (!Q.isEmpty() && graph.vertexes.size() <= numPages) {
 			Vertex currentPage = Q.poll();
-			if (checkPage(currentPage)) {
+			urls = urlList(currentPage.data);
+			if (urls.size() != 0) {
 				graph.vertexes.add(currentPage);
-				page = builder(currentPage.data);
-				urls = extractLinks(page);
 				for (String link : urls) {
 					Vertex u = new Vertex(link, currentPage);
 					if (!visited.contains(u)) {
@@ -63,9 +62,9 @@ public class WikiCrawler {
 				}
 			}
 		}
-		
-		for(Vertex v : graph.vertexes){
-			if(v.parent != null){
+
+		for (Vertex v : graph.vertexes) {
+			if (v.parent != null) {
 				graph.edges.add(new Edge(v.parent, v));
 			}
 		}
@@ -75,6 +74,7 @@ public class WikiCrawler {
 		}
 		try {
 			PrintWriter writer = new PrintWriter(fileWriteName, "UTF-8");
+			writer.println(numPages);
 			for (Edge e : graph.edges) {
 				writer.println(e.from.data + " " + e.to.data);
 			}
@@ -84,134 +84,75 @@ public class WikiCrawler {
 		}
 	}
 
-	// NOTE: extractLinks takes the source HTML code, NOT a URL
+	// SECOND VERSION............................................................................................
 	public ArrayList<String> extractLinks(String doc) { // TODO
 		ArrayList<String> results = new ArrayList<String>();
-		int index = 0;
+		int index = doc.indexOf("href");
 
-		while (results.size() < numPages && doc.indexOf("href") != -1) {
+		while (index >= 0) {
 			int startIndex = doc.indexOf("href", index);
-			index = startIndex + 7;
 			int endIndex = doc.indexOf("\"", startIndex + 6);
 			int strLen = endIndex - startIndex;
 			String possibleLink = doc.substring(startIndex + 6, startIndex
 					+ strLen);
 			if (!possibleLink.contains("#")
 					&& !possibleLink.contains(":")
-					&& (possibleLink.length() >= 6 && possibleLink.substring(0,
-							6).equals("/wiki/"))) {
-				Vertex v = new Vertex();
-				v.data = possibleLink;
-				try {
-					boolean check = checkPage(v);
-					if (check) {
-						results.add(possibleLink);
-					}
-				} catch (Exception e) {
-
-				}
-
+					&& (possibleLink.length() >= 6 && possibleLink.substring(0,6).equals("/wiki/"))) 
+			{
+				results.add(possibleLink);
 			}
+			index = doc.indexOf("href", index + 1);
 		}
 		return results;
 	}
-
-	private String builder(String link) throws Exception {
-		URL url = new URL(BASE_URL + link);
-		InputStream is = url.openStream();
-		BufferedReader br = new BufferedReader(new InputStreamReader(is));
+	
+	
+	private ArrayList<String> urlList(String link) {
+		// array of duplicate topics
+		ArrayList<String> duplicates = new ArrayList<String>(topic);
+		ArrayList<String> validUrls = new ArrayList<String>();
 		String line;
-		StringBuilder result = new StringBuilder();
+		boolean pSection = false;
+
 		try {
-			while ((line = br.readLine()) != null) {
-				result.append(line);
-			}
-		} catch (IOException ioe) {
-			ioe.printStackTrace();
-		}
+			URL url = new URL(BASE_URL + link);
+			InputStream is = url.openStream();
+			BufferedReader br = new BufferedReader(new InputStreamReader(is));
 
-		return result.toString();
-	}
-
-	private boolean checkPage(Vertex v) throws Exception {
-		URL url = new URL(BASE_URL + v.data);
-		InputStream is = url.openStream();
-		BufferedReader br = new BufferedReader(new InputStreamReader(is));
-
-		ArrayList<String> duplicates = new ArrayList<String>(topic);// array of
-																	// duplicate
-																	// topics
-		String line;
-		try {
 			while ((line = br.readLine()) != null)// while the line isnt null
 			{
-				if (line.contains("<p>"))// if the line is one we look at
+				if (line.contains("<p>") || pSection)// if the line is one we look at
 				{
-					for (int i = 0; i < topic.size(); i++)// traverse through
-															// each topic
-					{
-						if (line.toLowerCase().contains(
-								topic.get(i).toLowerCase()))// if the topic is
-															// in the line
-						{
-							duplicates.remove(topic.get(i));// remove it from
-															// duplicate array
+					// check if this line contains an ending p tag so we stop looking through 
+					pSection = line.contains("</p>");
+					
+					// traverse through each topic
+					for (int i = 0; i < topic.size(); i++) {
+						// if the topic is in the line
+						if (line.toLowerCase().contains(topic.get(i).toLowerCase())) {
+							// remove it from duplicate array
+							duplicates.remove(topic.get(i));
+						}
+					}
+					
+					ArrayList<String> extractedLinks = extractLinks(line);
+					for(String str : extractedLinks){
+						if(!validUrls.contains(link)){
+							validUrls.add(str);
 						}
 					}
 				}
-
 			}
-			if (duplicates.size() != 0)// if nothing in duplicates, that means
-										// that we found the topic
-			{
-				return false;
+
+			// if nothing in duplicates, that means that we found the topic
+			if (duplicates.size() != 0) {
+				return new ArrayList<String>();
 			} else {
-				return true;
+				return validUrls;
 			}
 		} catch (IOException ioe) {
 			ioe.printStackTrace();
-			return false;
-		}
-	}
-
-	private boolean checkSeed() throws Exception {
-		URL url = new URL(BASE_URL + seed);
-		InputStream is = url.openStream();
-		BufferedReader br = new BufferedReader(new InputStreamReader(is));
-
-		ArrayList<String> duplicates = new ArrayList<String>(topic);// array of
-																	// duplicate
-																	// topics
-		String line;
-		try {
-			while ((line = br.readLine()) != null)// while the line isnt null
-			{
-				if (line.contains("<p>"))// if the line is one we look at
-				{
-					for (int i = 0; i < topic.size(); i++)// traverse through
-															// each topic
-					{
-						if (line.toLowerCase().contains(
-								topic.get(i).toLowerCase()))// if the topic is
-															// in the line
-						{
-							duplicates.remove(topic.get(i));// remove it from
-															// duplicate array
-						}
-					}
-				}
-
-			}
-			if (duplicates.size() != 0)// if nothing in duplicates, that means
-										// that we found the topic
-			{
-				return false;
-			} else {
-				return true;
-			}
-		} catch (IOException ioe) {
-			ioe.printStackTrace();
-			return false;
+			return new ArrayList<String>();
 		}
 	}
 }
