@@ -9,22 +9,25 @@ public class Tests {
 	
 	private static void testWikiCrawler(){
 		ArrayList<String> topics = new ArrayList<String>();
-		int numResults = 10;
-		String seed = "/wiki/Size";
-		topics.add("length");
-		topics.add("height");
-		topics.add("width");
+		int numResults = 25;
+//		String seed = "/wiki/Size";
+//		topics.add("length");
+//		topics.add("height");
+//		topics.add("width");
+		long startTime = System.currentTimeMillis();
 
-		// String seed = "/wiki/Iowa_State_University";
-		// topics.add("Iowa");
-		// topics.add("Cyclones");
+		 String seed = "/wiki/Iowa_State_University";
+		 topics.add("Iowa State");
+		 topics.add("Cyclones");
 
-		WikiCrawler w = new WikiCrawler(seed, numResults, topics, "WikiISU.txt");
+		WikiCrawler w = new WikiCrawler(seed, numResults, topics, "WikiISU2.txt");
 		try {
 			w.crawl();
 		} catch (Exception e) {
 			int temp = 0;
 		}
+		System.out.println("DONE.....................");
+		System.out.println("Finished in: " + (System.currentTimeMillis() - startTime) + "ms");
 	}
 	
 	private static void testNetworkInfluence(){
