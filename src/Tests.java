@@ -3,13 +3,13 @@ import java.util.ArrayList;
 
 public class Tests {
 	public static void main(String[] args) throws Exception {
-		//testWikiCrawler();
-		testNetworkInfluence();
+		testWikiCrawler();
+		//testNetworkInfluence();
 	}
 	
 	private static void testWikiCrawler(){
 		ArrayList<String> topics = new ArrayList<String>();
-		int numResults = 25;
+		int numResults = 20;
 //		String seed = "/wiki/Size";
 //		topics.add("length");
 //		topics.add("height");

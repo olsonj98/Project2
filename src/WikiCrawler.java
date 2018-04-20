@@ -21,6 +21,7 @@ import java.net.URL;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.Queue;
+import java.util.regex.*;
 
 public class WikiCrawler {
 	static final String BASE_URL = "https://en.wikipedia.org";
@@ -86,26 +87,28 @@ public class WikiCrawler {
 		}
 	}
 
-	// SECOND VERSION............................................................................................
-	public ArrayList<String> extractLinks(String doc) { // TODO
-		ArrayList<String> results = new ArrayList<String>();
-		int index = doc.indexOf("href");
 
-		while (index >= 0) {
-			int startIndex = doc.indexOf("href", index);
-			int endIndex = doc.indexOf("\"", startIndex + 6);
-			int strLen = endIndex - startIndex;
-			String possibleLink = doc.substring(startIndex + 6, startIndex
-					+ strLen);
-			if (!possibleLink.contains("#")
-					&& !possibleLink.contains(":")
-					&& (possibleLink.length() >= 6 && possibleLink.substring(0,6).equals("/wiki/"))) 
+//Version 3 uses regex	
+	public ArrayList<String> extractLinks(String doc) 
+	{ // TODO
+		ArrayList<String> result = new ArrayList<String>();
+		String[] l = doc.split("\r");
+		for(int i=0;i<l.length;i++)
+		{
+			String regex = "href=\"/wiki/.*?\"";
+			Pattern string = Pattern.compile(regex);
+			Matcher m = string.matcher(l[i]);
+			while(m.find()) 
 			{
-				results.add(possibleLink);
+				String hrefLink = m.group().substring(m.group().indexOf('"')+1, m.group().length()-1);
+						    	
+				if(!hrefLink.contains("#") && !hrefLink.contains(":") && !result.contains(hrefLink))
+				{
+					  result.add(hrefLink);
+				}
 			}
-			index = doc.indexOf("href", index + 1);
 		}
-		return results;
+		return result;
 	}
 	
 	
