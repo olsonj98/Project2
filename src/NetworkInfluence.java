@@ -222,62 +222,73 @@ public class NetworkInfluence
 		return sum;
 	}
 
-	public ArrayList<String> mostInfluentialDegree(int k) {
-		ArrayList<String> S = new ArrayList<String>();
-		float[] topDeg = new float[k];
-		String[] topVal = new String[k];
-		float inf;
-		
-		for(int i = 0; i < graph.vertices.size(); i++){
-			inf = outDegree(graph.vertices.get(i).data);
-			for(int j = 0; j < k; j++){
-				if(inf > topDeg[j]){
-					topDeg[j] = inf;
-					topVal[j] = graph.vertices.get(i).data;
-					break;
-				}
-			}
+	public ArrayList<String> mostInfluentialDegree(int k)
+	{
+		ArrayList<String> vs = new ArrayList<String>();
+		ArrayList<String> most = new ArrayList<String>();
+		for (Vertex v : graph.vertices) {
+			vs.add(v.data);
 		}
-		
-		for(int i = 0; i < k; i++){
-			S.add(topVal[i]);
+		vs = selectionSortDegree(vs);
+		Collections.reverse(vs);
+		for (int i = 0; i < k; i++) {
+			most.add(vs.get(i));
 		}
-		
-		return S;
+		//Collections.reverse(most);
+		return most;
 	}
 
-	public ArrayList<String> mostInfluentialModular(int k) {
-		ArrayList<String> S = new ArrayList<String>();
-		float[] topInf = new float[k];
-		String[] topVal = new String[k];
-		float inf;
-		
-		for(int i = 0; i < graph.vertices.size(); i++){
-			inf = influence(graph.vertices.get(i).data);
-			for(int j = 0; j < k; j++){
-				if(inf > topInf[j]){
-					topInf[j] = inf;
-					topVal[j] = graph.vertices.get(i).data;
-					break;
+	public ArrayList<String> selectionSortDegree(ArrayList<String> arr) {
+		int n = arr.size();
+		for (int i = 0; i < n; i++) {
+			int min_idx = i;
+			for (int j = i+1; j < n; j++) {
+				if (outDegree(arr.get(j)) < outDegree(arr.get(min_idx))) {
+					min_idx = j;
 				}
 			}
+			String temp = arr.get(min_idx);
+			arr.set(min_idx, arr.get(i));
+			arr.set(i, temp);
 		}
-		
-		for(int i = 0; i < k; i++){
-			S.add(topVal[i]);
+		return arr;
+	}
+	
+	public ArrayList<String> mostInfluentialModular(int k)
+	{
+		ArrayList<String> vs = new ArrayList<String>();
+		ArrayList<String> most = new ArrayList<String>();
+		for (Vertex v : graph.vertices) {
+			vs.add(v.data);
 		}
-		
-		return S;
+		vs = selectionSortInfluence(vs);
+		Collections.reverse(vs);
+		for (int i = 0; i < k; i++) {
+			most.add(vs.get(i));
+		}
+		//Collections.reverse(most);
+		return most;
 	}
 
+	public ArrayList<String> selectionSortInfluence(ArrayList<String> arr) {
+		int n = arr.size();
+		for (int i = 0; i < n; i++) {
+			int min_idx = i;
+			for (int j = i+1; j < n; j++) {
+				if (influence(arr.get(j)) < influence(arr.get(min_idx))) {
+					min_idx = j;
+				}
+			}
+			String temp = arr.get(min_idx);
+			arr.set(min_idx, arr.get(i));
+			arr.set(i, temp);
+		}
+		return arr;
+	}
+	
 	public ArrayList<String> mostInfluentialSubModular(int k) {
-		ArrayList<String> S = new ArrayList<String>();
-		
-		for(int i = 0; i < k; i++){
-			
-		}
-		
-		return S;
+		//todo 
+		return null;	
 	}
 	
 	/*
