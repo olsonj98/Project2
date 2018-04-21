@@ -16,4 +16,15 @@ public class Vertex {
 		this.data = url;
 		this.parent = p;
 	}
+	
+	public boolean same(Vertex v) {
+		if (this.data.equals(v.data))
+		{
+			return true;
+		}
+		else 
+		{
+			return false;
+		}
+	}
 }

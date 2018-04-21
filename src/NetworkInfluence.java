@@ -14,11 +14,16 @@
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.LinkedList;
+import java.util.Queue;
 import java.util.Scanner;
 
 public class NetworkInfluence
 {
-	public ArrayList<Vertex> graph = new ArrayList<Vertex>();
+	public Graph graph = new Graph();
 	public int numVertices;
 	
 	// NOTE: graphData is an absolute file path that contains graph data, NOT the raw graph data itself
@@ -26,58 +31,52 @@ public class NetworkInfluence
 	{
 		File file = new File(graphData);
 		Scanner sc;
-		boolean firstFound, secondFound;
-		Vertex first = new Vertex();
-		Vertex second = new Vertex();
+		boolean fromFound, toFound;
 		try {
 			sc = new Scanner(file);
 			if(sc.hasNextLine()) numVertices = sc.nextInt();
 			
 			while(sc.hasNextLine()){
-				String[] edge = {sc.next(), sc.next()};
+				Vertex from = new Vertex(sc.next());
+				Vertex to = new Vertex(sc.next());
+				Edge edge = new Edge(from, to);
+				graph.edges.add(edge);
 				
-				firstFound = false;
-				secondFound = false;
-				for(Vertex v : graph){
-					if(v.data.equals(edge[0])){
-						firstFound = true;
-						first = v;
+				fromFound = false;
+				toFound = false;
+				for(Vertex v : graph.vertices){
+					if(v.same(from)) {
+						fromFound = true;
 					}
-					if(v.data.equals(edge[1])){
-						secondFound = true;
-						second = v;
+					if(v.same(to)){
+						toFound = true;
 					}
 				}
 				
-				if(!firstFound){
-					first = new Vertex(edge[0]);
-					graph.add(first);
+				if(!fromFound){
+					graph.vertices.add(from);
 				}
 				
-				if(!secondFound){
-					second = new Vertex(edge[1]);
-					graph.add(second);
+				if(!toFound){
+					graph.vertices.add(to);
 				}
 				
-				first.to.add(second);
-				second.from.add(first);
 			}
 			
 			sc.close();
 		} catch (FileNotFoundException e) {
 			e.printStackTrace();
 		}
+		
+		printV(graph.vertices);
+		printE(graph.edges);
+		printArrayList(shortestPath("Ames", "Chicago"));
 	}
 
 	public int outDegree(String v)
 	{
-		for(Vertex vertex : graph){
-			if(vertex.data.equals(v)){
-				return vertex.to.size();
-			}
-		}
-
-		return -1;
+		ArrayList<String> neighbors = neighbors(v, graph.edges);
+		return neighbors.size();
 	}
 
 	public ArrayList<String> shortestPath(String u, String v)
@@ -91,59 +90,113 @@ public class NetworkInfluence
 		 * will be BFS traversal of the input graph
 		 */
 
-		ArrayList<String> arr = new ArrayList<String>();
-		Queue<Vertex> Q = new LinkedList<Vertex>();
-		LinkedList<Vertex> visited = new LinkedList<Vertex>();
-
-		Vertex root;
-		for (Vertex ver : graph) {
-			if (ver.data.equals(u)) {
-				root = ver;
-				Q.add(root);
-				visited.add(root);
-				break;
-			}
+		ArrayList<String> path = new ArrayList<String>();
+		Queue<String> Q = new LinkedList<String>();
+		LinkedList<String> visited = new LinkedList<String>();
+		HashMap<String, String> parents = new HashMap<String, String>();
+		HashMap<String, Integer> distances = new HashMap<String, Integer>();
+		
+		Q.add(u);
+		visited.add(u);
+		Vertex k = null;
+		
+		for (int i = 0; i < graph.vertices.size(); i++) {
+			k = graph.vertices.get(i);
+			distances.put(k.data, Integer.MAX_VALUE);
+			parents.put(k.data, null);
 		}
 
+		distances.put(u, 0);
+		
 		while (!Q.isEmpty()) {
-			Vertex temp = Q.poll();
-			for (Vertex edge : temp.to) {
-				if (!visited.contains(edge)) {
-					Q.add(edge);
-					visited.add(edge);
-				}
+			String next = Q.poll();
+			if (next.equals(v)) {
+				break; // path found from u to v
+			} else {
+				ArrayList<String> adj = neighbors(next, graph.edges);
+				 if (adj != null) {
+					 // adjacent vertices exist
+					 for (int i = 0; i < adj.size(); i++) {
+						 String e = adj.get(i);
+						 if (distances.get(e) > distances.get(next) + 1) {
+							 distances.put(e, distances.get(next) + 1);
+							 parents.put(e, next);
+						 }
+						 if (!visited.contains(e)) {
+							 Q.add(e);
+							 visited.add(e);
+						 }
+					 }
+				 }
+			}
+			
+			
+		}
+		path.add(v);
+		String temp = parents.get(v);
+		if (temp == null) {
+			path.add(v);
+			return path;
+		}
+		while (!temp.equals(u)) {
+			path.add(temp);
+			temp = parents.get(temp);
+		}
+		path.add(u);
+		Collections.reverse(path);
+
+		return path;
+	}
+	
+	// finds neighboring Vertices to v
+	public static ArrayList<String> neighbors(String v, ArrayList<Edge> es) {
+		ArrayList<String> adj = new ArrayList<String>();
+		for (Edge e : es) {
+			if (e.from.data.equals(v)) {
+				adj.add(e.to.data);
 			}
 		}
-
-		for (Vertex point : visited) {
-			arr.add(point.data);
-		}
-
-		return arr;
+		return adj;
 	}
 
 	public int distance(String u, String v)
 	{
 		ArrayList<String> path = shortestPath(u,v);
-		return path.size();
+		return path.size() - 1;
 	}
 
 	public int distance(ArrayList<String> s, String v)
 	{
 		int shortest = Integer.MAX_VALUE;
-		for(String str : s){
-			int result = distance(str, v);
-			if(result < shortest && result != 0) shortest = result;
+		for (String str : s) {
+			int temp = distance(str, v);
+			if (temp < shortest)
+				shortest = temp;
 		}
 		return shortest;
 	}
 
 	public float influence(String u)
 	{
-		// implementation
+		float first;
+		float value;
+		float sum = 0;
+		int n = graph.vertices.size();
+		for (int i = 0; i < n; i++) {
+			ArrayList<String> ys = new ArrayList<String>();
+			for (int j = 0; j < n; j++) {
+				String y = graph.vertices.get(j).data;
+				if (distance(u, y) == i) {
+					ys.add(y);
+				}
+				
+			}
+			first = (float) (1 / (Math.pow(2, i)));
+			value = first * ys.size();
+			sum += value;
+		}
 
-		// replace this:
-		return -1f;
+		return sum;
 	}
 
 	public float influence(ArrayList<String> s)
@@ -178,17 +231,39 @@ public class NetworkInfluence
 		return null;
 	}
 	
-	private class Vertex{
-		ArrayList<Vertex> to = new ArrayList<Vertex>();
-		ArrayList<Vertex> from = new ArrayList<Vertex>();
-		String data;
-		
-		public Vertex(){
-			data = "";
-		}
-		
-		public Vertex(String str){
-			data = str;
-		}
+	/*
+	 * prints out the array for testing
+	 */
+	public static void printArrayList(ArrayList<String> arr) {
+		System.out.print("{");
+		for (int j = 0; j < arr.size(); j++)
+			if (j != arr.size() - 1)
+				System.out.print(arr.get(j) + ", ");
+			else
+				System.out.println(arr.get(j) + "}");
+	}
+	
+	/*
+	 * prints out the vertices for testing
+	 */
+	public static void printV(ArrayList<Vertex> arr) {
+		System.out.print("{");
+		for (int j = 0; j < arr.size(); j++)
+			if (j != arr.size() - 1)
+				System.out.print(arr.get(j).data + ", ");
+			else
+				System.out.println(arr.get(j).data + "}");
+	}
+	
+	/*
+	 * prints out the edges for testing
+	 */
+	public static void printE(ArrayList<Edge> arr) {
+		System.out.print("{");
+		for (int j = 0; j < arr.size(); j++)
+			if (j != arr.size() - 1)
+				System.out.print(arr.get(j).from.data + " -> " + arr.get(j).to.data + ", ");
+			else
+				System.out.println(arr.get(j).from.data + " -> " + arr.get(j).to.data + "}");
 	}
 }

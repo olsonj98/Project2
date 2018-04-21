@@ -49,13 +49,13 @@ public class WikiCrawler {
 		Q.add(root);
 		visited.add(root);
 
-		while (!Q.isEmpty() && graph.vertexes.size() <= numPages) {
+		while (!Q.isEmpty() && graph.vertices.size() <= numPages) {
 			Vertex currentPage = Q.poll();
 			if(sleepCount % 25 == 0) { try {Thread.sleep(3000);} catch(Exception e) { System.out.println("Sleep function failed.");}}
 			urls = urlList(currentPage.data);
 			sleepCount++;
 			if (urls.size() != 0) {
-				graph.vertexes.add(currentPage);
+				graph.vertices.add(currentPage);
 				for (String link : urls) {
 					Vertex u = new Vertex(link, currentPage);
 					if (!visited.contains(u)) {
@@ -66,7 +66,7 @@ public class WikiCrawler {
 			}
 		}
 
-		for (Vertex v : graph.vertexes) {
+		for (Vertex v : graph.vertices) {
 			if (v.parent != null) {
 				graph.edges.add(new Edge(v.parent, v));
 			}
