@@ -1,0 +1,10 @@
+10
+Ames Chicago
+Chicago Minneapolis
+Minneapolis Omaha
+Minneapolis Denver
+Denver Houston
+Denver LosAngeles
+Houston Austin
+Austin Tampa
+Tampa NYC
