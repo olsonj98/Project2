@@ -207,28 +207,62 @@ public class NetworkInfluence
 		return -1f;
 	}
 
-	public ArrayList<String> mostInfluentialDegree(int k)
-	{
-		// implementation
-
-		// replace this:
-		return null;
+	public ArrayList<String> mostInfluentialDegree(int k) {
+		ArrayList<String> S = new ArrayList<String>();
+		float[] topDeg = new float[k];
+		String[] topVal = new String[k];
+		float inf;
+		
+		for(int i = 0; i < graph.vertices.size(); i++){
+			inf = outDegree(graph.vertices.get(i).data);
+			for(int j = 0; j < k; j++){
+				if(inf > topDeg[j]){
+					topDeg[j] = inf;
+					topVal[j] = graph.vertices.get(i).data;
+					break;
+				}
+			}
+		}
+		
+		for(int i = 0; i < k; i++){
+			S.add(topVal[i]);
+		}
+		
+		return S;
 	}
 
-	public ArrayList<String> mostInfluentialModular(int k)
-	{
-		// implementation
-
-		// replace this:
-		return null;
+	public ArrayList<String> mostInfluentialModular(int k) {
+		ArrayList<String> S = new ArrayList<String>();
+		float[] topInf = new float[k];
+		String[] topVal = new String[k];
+		float inf;
+		
+		for(int i = 0; i < graph.vertices.size(); i++){
+			inf = influence(graph.vertices.get(i).data);
+			for(int j = 0; j < k; j++){
+				if(inf > topInf[j]){
+					topInf[j] = inf;
+					topVal[j] = graph.vertices.get(i).data;
+					break;
+				}
+			}
+		}
+		
+		for(int i = 0; i < k; i++){
+			S.add(topVal[i]);
+		}
+		
+		return S;
 	}
 
-	public ArrayList<String> mostInfluentialSubModular(int k)
-	{
-		// implementation
-
-		// replace this:
-		return null;
+	public ArrayList<String> mostInfluentialSubModular(int k) {
+		ArrayList<String> S = new ArrayList<String>();
+		
+		for(int i = 0; i < k; i++){
+			
+		}
+		
+		return S;
 	}
 	
 	/*
