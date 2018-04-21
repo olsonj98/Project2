@@ -31,7 +31,7 @@ public class Tests {
 	}
 	
 	private static void testNetworkInfluence(){
-		NetworkInfluence graph = new NetworkInfluence("test.txt");
+		NetworkInfluence graph = new NetworkInfluence("WikiCS.txt");
 //		String u = "/wiki/Complexity_theory";
 //		String v = "/wiki/System";
 //		String inf = "/wiki/Complexity";

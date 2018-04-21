@@ -201,10 +201,25 @@ public class NetworkInfluence
 
 	public float influence(ArrayList<String> s)
 	{
-		// implementation
+		float first;
+		float value;
+		float sum = 0;
+		int n = graph.vertices.size();
+		for (int i = 0; i < n; i++) {
+			ArrayList<String> ys = new ArrayList<String>();
+			for (int j = 0; j < n; j++) {
+				String y = graph.vertices.get(j).data;
+				if (distance(s, y) == i) {
+					ys.add(y);
+				}
+				
+			}
+			first = (float) (1 / (Math.pow(2, i)));
+			value = first * ys.size();
+			sum += value;
+		}
 
-		// replace this:
-		return -1f;
+		return sum;
 	}
 
 	public ArrayList<String> mostInfluentialDegree(int k)

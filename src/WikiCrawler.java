@@ -77,9 +77,9 @@ public class WikiCrawler {
 		}
 		try {
 			PrintWriter writer = new PrintWriter(fileWriteName, "UTF-8");
-			writer.println(numPages);
+			writer.print(numPages);
 			for (Edge e : graph.edges) {
-				writer.println(e.from.data + " " + e.to.data);
+				writer.print("\n" + e.from.data + " " + e.to.data);
 			}
 			writer.close();
 		} catch (Exception e) {
