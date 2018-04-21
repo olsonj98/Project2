@@ -40,5 +40,12 @@ public class Tests {
 		String inf = "Omaha";
 		System.out.println("Distance between  " + u + " and " + v + ": " + graph.distance(u, v));
 		System.out.println("Influence of " + inf + ": " + graph.influence(inf));
+		
+		ArrayList<String> influential = graph.mostInfluentialDegree(2);
+		System.out.println("Most influential 2 degree: " + influential.get(0) + ", " + influential.get(1));
+		influential = graph.mostInfluentialModular(2);
+		System.out.println("Most influential 2 modular: " + influential.get(0) + ", " + influential.get(1));
+		influential = graph.mostInfluentialSubModular(2);
+//		System.out.println("Most influential 2 submodular: " + influential.get(0) + ", " + influential.get(1));
 	}
 }
