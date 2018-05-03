@@ -24,12 +24,17 @@ import java.util.Queue;
 import java.util.regex.*;
 
 public class WikiCrawler {
-	static final String BASE_URL = "https://en.wikipedia.org";
+	// static final String BASE_URL = "https://en.wikipedia.org";
+	static final String BASE_URL = "http://web.cs.iastate.edu/~pavan";
 	String fileWriteName, seed;
 	int numPages;
 	ArrayList<String> topic;
 	Graph graph;
 	int sleepCount = 0;
+	
+	//Graph
+	public ArrayList<String> vertices;
+	public ArrayList<String> edges;
 
 	public WikiCrawler(String seedUrl, int max, ArrayList<String> topics,
 			String fileName) {
@@ -38,37 +43,49 @@ public class WikiCrawler {
 		fileWriteName = fileName;
 		topic = topics;
 		graph = new Graph();
+		vertices = new ArrayList<String>();
+		vertices.add(seedUrl);
 	}
 
 	public void crawl() {
 		Queue<Vertex> Q = new LinkedList<Vertex>();
-		ArrayList<Vertex> visited = new ArrayList<Vertex>();
+		ArrayList<String> visited = new ArrayList<String>();
 		ArrayList<String> urls = new ArrayList<String>();
+		ArrayList<String> distinct = new ArrayList<String>();
 
 		Vertex root = new Vertex(seed);
 		Q.add(root);
-		visited.add(root);
+		distinct.add(seed);
 
-		while (!Q.isEmpty() && graph.vertices.size() <= numPages) {
+		while (!Q.isEmpty()) {
 			Vertex currentPage = Q.poll();
-			if(sleepCount % 25 == 0) { try {Thread.sleep(3000);} catch(Exception e) { System.out.println("Sleep function failed.");}}
+			if (sleepCount % 25 == 0) {
+				try {
+					Thread.sleep(3000);
+				} catch (Exception e) {
+					System.out.println("Sleep function failed.");
+				}
+			}
 			urls = urlList(currentPage.data);
+
 			sleepCount++;
 			if (urls.size() != 0) {
 				graph.vertices.add(currentPage);
 				for (String link : urls) {
 					Vertex u = new Vertex(link, currentPage);
-					if (!visited.contains(u)) {
-						visited.add(u);
+					if(!distinct.contains(link)){ 
+						if(distinct.size() == numPages){
+							break;
+						}
+							else{
+								distinct.add(link);
+							}
+						}
+					if (!visited.contains(currentPage.data + " " + link)) {		// essentially using strings as edges here cause they're easier to check
+						visited.add(currentPage.data + " " + link);
 						Q.add(u);
 					}
 				}
-			}
-		}
-
-		for (Vertex v : graph.vertices) {
-			if (v.parent != null) {
-				graph.edges.add(new Edge(v.parent, v));
 			}
 		}
 
@@ -78,8 +95,8 @@ public class WikiCrawler {
 		try {
 			PrintWriter writer = new PrintWriter(fileWriteName, "UTF-8");
 			writer.print(numPages);
-			for (Edge e : graph.edges) {
-				writer.print("\n" + e.from.data + " " + e.to.data);
+			for (int i = 0; i < visited.size(); i++) {
+				writer.print("\n" + visited.get(i));
 			}
 			writer.close();
 		} catch (Exception e) {
@@ -87,31 +104,27 @@ public class WikiCrawler {
 		}
 	}
 
-
-//Version 3 uses regex	
-	public ArrayList<String> extractLinks(String doc) 
-	{ // TODO
+	// Version 3 uses regex
+	public ArrayList<String> extractLinks(String doc) { // TODO
 		ArrayList<String> result = new ArrayList<String>();
 		String[] l = doc.split("\r");
-		for(int i=0;i<l.length;i++)
-		{
+		for (int i = 0; i < l.length; i++) {
 			String regex = "href=\"/wiki/.*?\"";
 			Pattern string = Pattern.compile(regex);
 			Matcher m = string.matcher(l[i]);
-			while(m.find()) 
-			{
-				String hrefLink = m.group().substring(m.group().indexOf('"')+1, m.group().length()-1);
-						    	
-				if(!hrefLink.contains("#") && !hrefLink.contains(":") && !result.contains(hrefLink))
-				{
-					  result.add(hrefLink);
+			while (m.find()) {
+				String hrefLink = m.group().substring(
+						m.group().indexOf('"') + 1, m.group().length() - 1);
+
+				if (!hrefLink.contains("#") && !hrefLink.contains(":")
+						&& !result.contains(hrefLink)) {
+					result.add(hrefLink);
 				}
 			}
 		}
 		return result;
 	}
-	
-	
+
 	private ArrayList<String> urlList(String link) {
 		// array of duplicate topics
 		ArrayList<String> duplicates = new ArrayList<String>(topic);
@@ -126,23 +139,26 @@ public class WikiCrawler {
 
 			while ((line = br.readLine()) != null)// while the line isnt null
 			{
-				if (line.contains("<p>") || pSection)// if the line is one we look at
+				if (line.contains("<p>") || pSection)// if the line is one we
+														// look at
 				{
-					// check if this line contains an ending p tag so we stop looking through 
-					pSection = line.contains("</p>");
-					
+					// check if this line contains an ending p tag so we stop
+					// looking through
+					pSection = !line.contains("</p>");
+
 					// traverse through each topic
 					for (int i = 0; i < topic.size(); i++) {
 						// if the topic is in the line
-						if (line.toLowerCase().contains(topic.get(i).toLowerCase())) {
+						if (line.toLowerCase().contains(
+								topic.get(i).toLowerCase())) {
 							// remove it from duplicate array
 							duplicates.remove(topic.get(i));
 						}
 					}
-					
+
 					ArrayList<String> extractedLinks = extractLinks(line);
-					for(String str : extractedLinks){
-						if(!validUrls.contains(link)){
+					for (String str : extractedLinks) {
+						if (!validUrls.contains(link)) {
 							validUrls.add(str);
 						}
 					}
