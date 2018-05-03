@@ -81,8 +81,9 @@ public class WikiCrawler {
 								distinct.add(link);
 							}
 						}
-					if (!visited.contains(currentPage.data + " " + link)) {		// essentially using strings as edges here cause they're easier to check
-						visited.add(currentPage.data + " " + link);
+					ArrayList<String> usUrls = urlList(link);
+					if (usUrls.size() != 0 && !visited.contains(currentPage.data + " " + link)) {		// essentially using strings as edges here cause they're easier to check
+						visited.add(currentPage.data + " " + link);		// checking each link's urlList really doesn't slow it down all that much
 						Q.add(u);
 					}
 				}
