@@ -262,7 +262,7 @@ public class NetworkInfluence
 			vs.add(v.data);
 		}
 		vs = selectionSortInfluence(vs);
-		Collections.reverse(vs);
+		//Collections.reverse(vs);
 		for (int i = 0; i < k; i++) {
 			most.add(vs.get(i));
 		}
